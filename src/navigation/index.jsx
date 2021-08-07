@@ -3,16 +3,20 @@ import { AuthContext } from "../providers/AuthProvider";
 import { NavigationContainer } from "@react-navigation/native";
 import Loading from "../screens/utils/Loading";
 import Auth from "./AuthStack";
+import Main from "./MainStack";
 
 export default () => {
+  let screen;
   const auth = useContext(AuthContext);
   const user = auth.user;
 
-  return (
-    <NavigationContainer>
-      {user === null && <Loading />}
-      {user === undefined && <Auth />}
-      {/* {user && <Loading />} */}
-    </NavigationContainer>
-  );
+  if (user === undefined) {
+    screen = <Loading />;
+  } else if (user === null) {
+    screen = <Auth />;
+  } else if (user && Object.keys(user).length) {
+    screen = <Main />;
+  }
+
+  return <NavigationContainer>{screen}</NavigationContainer>;
 };

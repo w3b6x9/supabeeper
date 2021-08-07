@@ -16,7 +16,7 @@ SUPABASE_KEY=key
 3. Install deps
 
 ```js
-yarn
+yarn;
 ```
 
 4. Start Expo server:

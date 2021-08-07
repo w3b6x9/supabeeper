@@ -13,32 +13,27 @@ import {
 } from "native-base";
 import supabaseClient from "../../supabaseClient";
 
-const OTPConfirm = ({ route, navigation }) => {
+const CreateUsername = ({ navigation }) => {
+  const currentUser = supabaseClient.auth.user();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [otpToken, setOTPToken] = useState("");
+  const [username, setUsername] = useState("");
 
-  const confirm = async () => {
+  const save = async () => {
     setError("");
     setIsLoading(true);
 
-    const { session, error } = await supabaseClient.auth.verifyOTP({
-      phone: route.params.fullPhoneNumber,
-      token: otpToken,
-    });
+    const { error } = await supabaseClient
+      .from("profiles")
+      .insert([{ id: supabaseClient.auth.user().id, username }]);
 
     if (error) {
       setError(error.message);
       setIsLoading(false);
+    } else {
+      setIsLoading(false);
+      navigation.navigate("aUsername");
     }
-
-    // Hack b/c of bug: https://github.com/supabase/gotrue-js/issues/113
-    const { access_token, expires_in } = session;
-    const { user } = await supabaseClient.auth.api.getUser(access_token);
-    const expires_at = Math.round(Date.now() / 1000) + expires_in;
-    const newSession = { ...session, user, expires_at };
-    supabaseClient.auth._saveSession(newSession);
-    supabaseClient.auth._notifyAllSubscribers("SIGNED_IN");
   };
 
   return (
@@ -52,36 +47,35 @@ const OTPConfirm = ({ route, navigation }) => {
             </Alert>
           ) : null}
         </Box>
+
         <Center height="60%" width="95%">
           <Box safeArea flex={1} p={2} w="100%" mx="auto">
-            <Heading size="lg">Enter OTP Code</Heading>
+            <Heading size="lg">Enter username</Heading>
 
             <VStack space={4} mt={5}>
               <FormControl>
-                <FormControl.Label _text={{ fontSize: "sm", fontWeight: 600 }}>
-                  OTP code
-                </FormControl.Label>
                 <Input
-                  value={otpToken}
-                  onChangeText={setOTPToken}
-                  maxLength={6}
-                  textContentType="oneTimeCode"
-                  keyboardType="numeric"
-                  width="70%"
+                  value={username}
+                  onChangeText={setUsername}
+                  maxLength={15}
+                  autoCapitalize="none"
                 />
               </FormControl>
 
-              <Button onPress={confirm} isDisabled={isLoading || !otpToken}>
-                Confirm
+              <Button
+                onPress={save}
+                isDisabled={isLoading || !username || !currentUser}
+              >
+                Save
               </Button>
 
               <TouchableOpacity
                 onPress={() => {
-                  navigation.goBack();
+                  supabaseClient.auth.signOut();
                 }}
               >
                 <Text size="md" fontWeight="bold">
-                  Go back
+                  Log out
                 </Text>
               </TouchableOpacity>
             </VStack>
@@ -92,4 +86,4 @@ const OTPConfirm = ({ route, navigation }) => {
   );
 };
 
-export default OTPConfirm;
+export default CreateUsername;

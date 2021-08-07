@@ -4,13 +4,12 @@ import supabaseClient from "../supabaseClient";
 const AuthContext = createContext({});
 
 const AuthProvider = (props) => {
-  const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
+  const [user, setUser] = useState();
+  const [session, setSession] = useState();
 
   useEffect(() => {
-    const session = supabaseClient.auth.session();
-    setSession(session);
-    setUser({});
+    setSession(supabaseClient.auth.session());
+    setUser(supabaseClient.auth.user());
     const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
