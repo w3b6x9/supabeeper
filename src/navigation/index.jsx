@@ -55,6 +55,7 @@ export default () => {
                   size={size}
                 />
               ),
+              unmountOnBlur: true,
             }}
           />
         </Tab.Navigator>

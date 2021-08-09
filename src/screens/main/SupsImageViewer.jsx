@@ -22,6 +22,10 @@ const SupsImageViewer = ({ route, navigation }) => {
         navigation.goBack();
       }, 10000);
     });
+
+    return () => {
+      timeoutId && clearTimeout(timeoutId);
+    };
   }, []);
 
   return (
