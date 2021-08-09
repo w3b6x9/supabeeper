@@ -12,25 +12,39 @@ import {
   Alert,
 } from "native-base";
 import supabaseClient from "../../supabaseClient";
+import { useIsFocused } from "@react-navigation/native";
 
 const Home = ({ navigation }) => {
+  const isFocused = useIsFocused();
+  const currentUser = supabaseClient.auth.user();
+
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState();
   const [filteredUsers, setFilteredUsers] = useState();
   const [requestTracker, setRequestTracker] = useState({});
 
-  const onRequest = async (id) => {
+  const onRequest = async (requesteeId) => {
+    const maxWaitMs = 400;
+
     setRequestTracker((prevState) => ({
       ...prevState,
-      [id]: true,
+      [requesteeId]: true,
     }));
+
+    const start = new Date();
+    await supabaseClient
+      .from("requests")
+      .insert([{ requestor_id: currentUser.id, requestee_id: requesteeId }]);
+    const end = new Date();
+
+    const timeOutMs = maxWaitMs - (end - start) / 1000;
 
     setTimeout(() => {
       setRequestTracker((prevState) => ({
         ...prevState,
-        [id]: false,
+        [requesteeId]: false,
       }));
-    }, 2000);
+    }, timeOutMs);
   };
 
   useEffect(() => {
@@ -43,8 +57,8 @@ const Home = ({ navigation }) => {
       setFilteredUsers(data);
     };
 
-    fetchUsers();
-  }, []);
+    isFocused && fetchUsers();
+  }, [isFocused]);
 
   useEffect(() => {
     if (!users) return;
@@ -78,7 +92,7 @@ const Home = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView behavior="padding" enabled style={{ flex: 1 }}>
-      <Flex h="100%" mt="15%">
+      <Flex h="100%" mt="1">
         <Center>
           <Alert status="info" w="95%" mb={2}>
             <Alert.Icon />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { TouchableOpacity, KeyboardAvoidingView } from "react-native";
 import {
   Heading,
@@ -11,9 +11,11 @@ import {
   Alert,
   Text,
 } from "native-base";
+import { AuthContext } from "../../providers/AuthProvider";
 import supabaseClient from "../../supabaseClient";
 
 const CreateUsername = ({ navigation }) => {
+  const { onUserProfileChange } = useContext(AuthContext);
   const currentUser = supabaseClient.auth.user();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +25,7 @@ const CreateUsername = ({ navigation }) => {
     setError("");
     setIsLoading(true);
 
-    const { error } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from("profiles")
       .insert([{ id: supabaseClient.auth.user().id, username }]);
 
@@ -32,7 +34,7 @@ const CreateUsername = ({ navigation }) => {
       setIsLoading(false);
     } else {
       setIsLoading(false);
-      navigation.navigate("aUsername");
+      onUserProfileChange(data[0]);
     }
   };
 
